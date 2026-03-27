@@ -91,7 +91,7 @@ To manage the different screens for our game we have multiple options, we will s
 
 On our game loop (Update/Draw) we will just check for current game state and we will Update/Draw required data.
 
-Recommended [raylib examples for Phix/Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples) to check:
+Recommended [raylib examples for Phix-Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples) to check:
  - [core_basic_window](https://github.com/andizk4kx/raylib-playground/blob/main/examples/core/core_basic_window.ex) - simple code showing a videogame life cycle
  - [core_basic_screen_manager](https://github.com/raysan5/raylib/blob/master/examples/core/core_basic_screen_manager.c) - basic screens management structure
  
@@ -111,7 +111,7 @@ procedure DrawRectangleLines(integer posX, integer posY, integer width, integer 
 ```
 Most of those functions are self explanatory, they must be called in the draw part of the game loop, between `BeginDrawing()` and `EndDrawing()`. User needs to provide the drawing position (x, y), size and color. Just note that in case of rectangle-shapes drawing origin is upper-left corner while drawing circle-shapes origin is set in the center of the circle.
 
-Recommended [raylib examples for Phix/Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples) to check:
+Recommended [raylib examples for Phix-Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples) to check:
  - [shapes_basic_shapes](https://github.com/andizk4kx/raylib-playground/blob/main/examples/shapes/shapes_basic_shapes.ex) - basic shapes drawing
  - [shapes_logo_raylib](http://www.raylib.com/examples/shapes/loader.html?name=shapes_logo_raylib) - raylib logo drawn using shapes
 
@@ -137,7 +137,7 @@ function GetMousePosition()           -- Returns mouse position XY as sequence {
 ```
 This set of functions can be used in the `update` part of the game loop to check **if** one key or button has been pressed (or is being pressed in that frame).  
 
-Recommended [raylib examples for Phix/Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples)  to check:
+Recommended [raylib examples for Phix-Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples)  to check:
  - [core_input_keys](https://github.com/andizk4kx/raylib-playground/blob/main/examples/core/core_input_keys.ex) - keyboard inputs check
  - [core_input_mouse](https://github.com/andizk4kx/raylib-playground/blob/main/examples/core/core_input_mouse.ex) - mouse inputs check
 
@@ -177,7 +177,7 @@ procedure UnloadTexture(sequence texture);             -- Unload texture from GP
 procedure DrawTexture(sequence texture, integer posX, integer posY, sequence tint); -- Draw a texture in the canvas
 ```
 
-Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
+Recommended [raylib examples for Phix-Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples)  to check:
  - [textures_logo_raylib](http://www.raylib.com/examples/textures/loader.html?name=textures_logo_raylib) - texture loading and drawing
  - [textures_rectangle](http://www.raylib.com/examples/textures/loader.html?name=textures_rectangle) - texture loading and piece drawing
 
@@ -198,15 +198,15 @@ procedure UnloadFont(Font font)                  -- Unload Font from GPU memory
 procedure DrawTextEx(sequence font,sequence text, sequence position, integer fontSize, integer spacing, sequence tint)
 ```
 
-Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
- - [text_sprite_fonts](http://www.raylib.com/examples/text/loader.html?name=text_sprite_fonts) - sprite fonts loading and drawing
- - [text_bmfonts_ttf](http://www.raylib.com/examples/text/loader.html?name=text_bmfont_ttf) - bmfonts and ttf fonts loading
+Recommended [raylib examples for Phix-Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples)  to check:
+ - [text_sprite_fonts](https://github.com/andizk4kx/raylib-playground/blob/main/examples/text/text_font_spritefonts.ex) - sprite fonts loading and drawing
+ - [text_bmfonts_ttf](https://github.com/andizk4kx/raylib-playground/blob/main/examples/text/text_font_loading.ex) - bmfonts and ttf fonts loading
  - [text_writing_anim](http://www.raylib.com/examples/text/loader.html?name=text_writing_anim) - text writting animation effect
 
 
 ### Lesson 07: Sounds and music loading and playing
 
-*Lesson code file to review: [07_blocks_game_audio.c](lessons/07_blocks_game_audio.c)*
+*Lesson code file to review: [07_blocks_game_audio.ex](lessons/07_blocks_game_audio.ex)*
 
 To deal with audio on raylib, first of all, audio device must be initialized. To manage audio device, use the following functions:
 ```Euphoria
@@ -236,8 +236,8 @@ procedure StopMusicStream(sequence music)             -- Stop music playing
 ```
 
 Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
- - [audio_sound_loading](http://www.raylib.com/examples/audio/loader.html?name=audio_sound_loading) - sounds loading and playing
- - [audio_music_stream](http://www.raylib.com/examples/audio/loader.html?name=audio_music_stream) - music loading and streaming
+ - [audio_sound_loading](https://github.com/andizk4kx/raylib-playground/blob/main/examples/audio/audio_sound_loading.ex) - sounds loading and playing
+ - [audio_music_stream](https://github.com/andizk4kx/raylib-playground/blob/main/examples/audio/audio_music_stream.ex) - music loading and streaming
 
 
 ## Getting help 
