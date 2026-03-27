@@ -29,19 +29,19 @@ In this introductory course to [raylib](http://www.raylib.com/) we will implemen
 
 Lesson | Learning outcome | Source file | Related functions
 :-----:|------------------|:------------|:-----------------:
-[01](#lesson-01-introduction-to-raylib-and-videogames-programming) | raylib functionality, <br>videogame life cycle, <br>basic screens management | [01_blocks_game_intro.c](lessons/01_blocks_game_intro.c) | InitWindow(), CloseWindow(), <br>BeginDrawing(), EndDrawing()
-[02](#lesson-02-draw-basic-shapes-circle-rectangle) | basic shapes drawing | [02_blocks_game_drawing.c](lessons/02_blocks_game_drawing.c) | DrawRectangle(), DrawCircle()
-[03](#lesson-03-inputs-management-keyboard-mouse) | inputs management | [03_blocks_game_inputs.c](lessons/03_blocks_game_inputs.c) | IsKeyPressed(), IsKeyDown(), <br>IsMouseButtonPressed(), <br>IsMouseButtonDown(), <br>GetMouseX(), GetMouseY()
-[04](#lesson-04-collision-detection-and-resolution) | collision detection and resolution | [04_blocks_game_collisions.c](lessons/04_blocks_game_collisions.c) | CheckCollisionCircleRec(), <br>CheckCollisionRecs(), <br>CheckCollisionCircles()
-[05](#lesson-05-textures-loading-and-drawing) | textures loading and drawing | [05_blocks_game_textures.c](lessons/05_blocks_game_textures.c) | LoadTexture(), UnloadTexture(), <br>DrawTexture()
-[06](#lesson-06-fonts-loading-and-text-drawing) | fonts loading and text drawing | [06_blocks_game_text.c](lessons/06_blocks_game_text.c) | LoadFont(), UnloadFont(), <br>DrawText(), DrawTextEx()
-[07](#lesson-07-sounds-and-music-loading-and-playing) | sounds and music loading and playing | [07_blocks_game_audio.c](lessons/07_blocks_game_audio.c) | InitAudioDevice(), CloseAudioDevice(), <br>LoadSound(), UnloadSound(), <br>PlaySound(), LoadMusicStream(), UnloadMusicStream(), <br>PlayMusicStream()
+[01](#lesson-01-introduction-to-raylib-and-videogames-programming) | raylib functionality, <br>videogame life cycle, <br>basic screens management | [01_blocks_game_intro.ex](lessons/01_blocks_game_intro.ex) | InitWindow(), CloseWindow(), <br>BeginDrawing(), EndDrawing()
+[02](#lesson-02-draw-basic-shapes-circle-rectangle) | basic shapes drawing | [02_blocks_game_drawing.ex](lessons/02_blocks_game_drawing.ex) | DrawRectangle(), DrawCircle()
+[03](#lesson-03-inputs-management-keyboard-mouse) | inputs management | [03_blocks_game_inputs.ex](lessons/03_blocks_game_inputs.ex) | IsKeyPressed(), IsKeyDown(), <br>IsMouseButtonPressed(), <br>IsMouseButtonDown(), <br>GetMouseX(), GetMouseY()
+[04](#lesson-04-collision-detection-and-resolution) | collision detection and resolution | [04_blocks_game_collisions.ex](lessons/04_blocks_game_collisions.ex) | CheckCollisionCircleRec(), <br>CheckCollisionRecs(), <br>CheckCollisionCircles()
+[05](#lesson-05-textures-loading-and-drawing) | textures loading and drawing | [05_blocks_game_textures.ex](lessons/05_blocks_game_textures.ex) | LoadTexture(), UnloadTexture(), <br>DrawTexture()
+[06](#lesson-06-fonts-loading-and-text-drawing) | fonts loading and text drawing | [06_blocks_game_text.ex](lessons/06_blocks_game_text.ex) | LoadFont(), UnloadFont(), <br>DrawText(), DrawTextEx()
+[07](#lesson-07-sounds-and-music-loading-and-playing) | sounds and music loading and playing | [07_blocks_game_audio.ex](lessons/07_blocks_game_audio.ex) | InitAudioDevice(), CloseAudioDevice(), <br>LoadSound(), UnloadSound(), <br>PlaySound(), LoadMusicStream(), UnloadMusicStream(), <br>PlayMusicStream()
 
 **NOTE:** Most of the documentation for the exercise is directly included in the source code files as code comments. Read carefully those comments to understand every task and how implement the proposed solutions.
 
 ### Lesson 01: Introduction to raylib and videogames programming
 
-*Lesson code file to review: [01_blocks_game_intro.c](lessons/01_blocks_game_intro.c)*
+*Lesson code file to review: [01_blocks_game_intro.ex](lessons/01_blocks_game_intro.ex)*
 
 In this first lesson we will introduce raylib library and videogames programming principles. We will setup raylib and take a look to its functionality; we will see how videogame life cycle works and we will implement a basic screens management system for our game.
 
@@ -102,12 +102,12 @@ Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
 
 To draw basic shapes, raylib provides the following functions:
 ```c
-void DrawPixel(int posX, int posY, Color color);
-void DrawLine(int startPosX, int startPosY, int endPosX, int endPosY, Color color);
-void DrawCircle(int centerX, int centerY, float radius, Color color);
-void DrawCircleLines(int centerX, int centerY, float radius, Color color);
-void DrawRectangle(int posX, int posY, int width, int height, Color color);
-void DrawRectangleLines(int posX, int posY, int width, int height, Color color);
+procedure DrawPixel(integer posX, int posY, Color color);
+procedure DrawLine(integer startPosX, integer startPosY, integer endPosX, integer endPosY, sequence color) -- color={r,g,b,a}
+procedure DrawCircle(integer centerX, integer centerY, float radius, sequence color)
+procedure DrawCircleLines(integer centerX, integer centerY, float radius, sequence color)
+procedure DrawRectangle(integer posX, integer posY, integer width, integer height, sequence color)
+procedure DrawRectangleLines(integer posX, integer posY, integer width, integer height, sequence color)
 ```
 Most of those functions are self explanatory, they must be called in the draw part of the game loop, between `BeginDrawing()` and `EndDrawing()`. User needs to provide the drawing position (x, y), size and color. Just note that in case of rectangle-shapes drawing origin is upper-left corner while drawing circle-shapes origin is set in the center of the circle.
 
@@ -118,22 +118,22 @@ Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
 
 ### Lesson 03: Inputs management (keyboard, mouse)
 
-*Lesson code file to review: [03_blocks_game_inputs.c](lessons/03_blocks_game_inputs.c)*
+*Lesson code file to review: [03_blocks_game_inputs.ex](lessons/03_blocks_game_inputs.ex)*
 
 To manage inputs, raylib provides a set of functions to detect keyboard and mouse current state:
-```c
-bool IsKeyPressed(int key);               // Detect if a key has been pressed once
-bool IsKeyDown(int key);                  // Detect if a key is being pressed
-bool IsKeyReleased(int key);              // Detect if a key has been released once
-bool IsKeyUp(int key);                    // Detect if a key is NOT being pressed
+```Euphoria
+function IsKeyPressed(integer key)               -- Detect if a key has been pressed once
+function IsKeyDown(integer key)                  -- Detect if a key is being pressed
+function IsKeyReleased(integer key)              -- Detect if a key has been released once
+function IsKeyUp(integer key)                   -- Detect if a key is NOT being pressed
     
-bool IsMouseButtonPressed(int button);    // Detect if a mouse button has been pressed once
-bool IsMouseButtonDown(int button);       // Detect if a mouse button is being pressed
-bool IsMouseButtonReleased(int button);   // Detect if a mouse button has been released once
-bool IsMouseButtonUp(int button);         // Detect if a mouse button is NOT being pressed
-int GetMouseX(void);                      // Returns mouse position X
-int GetMouseY(void);                      // Returns mouse position Y
-Vector2 GetMousePosition(void);           // Returns mouse position XY
+function IsMouseButtonPressed(integer button)    -- Detect if a mouse button has been pressed once
+function IsMouseButtonDown(integer button)       -- Detect if a mouse button is being pressed
+function IsMouseButtonReleased(integer button)   -- Detect if a mouse button has been released once
+function IsMouseButtonUp(integer button)         -- Detect if a mouse button is NOT being pressed
+function GetMouseX()                      -- Returns mouse position X
+function GetMouseY()                    -- Returns mouse position Y
+function GetMousePosition()           -- Returns mouse position XY as sequence {x,y}
 ```
 This set of functions can be used in the `update` part of the game loop to check **if** one key or button has been pressed (or is being pressed in that frame).  
 
@@ -144,20 +144,20 @@ Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
 
 ### Lesson 04: Collision detection and resolution
 
-*Lesson code file to review: [04_blocks_game_collisions.c](lessons/04_blocks_game_collisions.c)*
+*Lesson code file to review: [04_blocks_game_collisions.ex](lessons/04_blocks_game_collisions.ex)*
 
 To check collisions between simple shapes (circle, rectangle), raylib provides the following functions:
-```c
-bool CheckCollisionRecs(Rectangle rec1, Rectangle rec2);                                    // Check collision between two rectangles
-bool CheckCollisionCircles(Vector2 center1, float radius1, Vector2 center2, float radius2); // Check collision between two circles
-bool CheckCollisionCircleRec(Vector2 center, float radius, Rectangle rec);                  // Check collision between circle and rectangle
+```Euphoria
+function CheckCollisionRecs(sequence rec1, sequence rec2)                                    -- Check collision between two rectangles rec={x,y,width,height}
+function CheckCollisionCircles(sequence center1, atom radius1, sequence center2, atom radius2) -- Check collision between two circles center,radius={x,y}
+function CheckCollisionCircleRec(sequence center, atom radius, sequence rec)                  -- Check collision between circle and rectangle
 ```
 Those functions return *true* if the involved rectangles/circles collide, is up to the user to resolve that collision in an appropiate way. Keep always in mind that collisions in games are always treatened as two separate parts: **detection** and **resolution**.
 
 
 ### Lesson 05: Textures loading and drawing
 
-*Lesson code file to review: [05_blocks_game_textures.c](lessons/05_blocks_game_textures.c)*
+*Lesson code file to review: [05_blocks_game_textures.ex](lessons/05_blocks_game_textures.ex)*
 
 Actually texture loading and drawing is a quite complex process: 
 
@@ -170,11 +170,11 @@ Third, when drawing a texture to screen, texture is actually pasted over a quad 
 raylib provides multiple functions to deal with textures an images, depending on the intended use of the data, user can choose the right one; for example, most of the time, images will be loaded as textures to be displayed on screen but image data can also be used to generate 3d models, like in the case of [heightmaps](https://www.raylib.com/examples/models/loader.html?name=models_heightmap).
 
 To load and draw textures, raylib provides the following functions:
-```c
-Texture2D LoadTexture(const char *fileName);       // Load an image file as texture into GPU memory
-void UnloadTexture(Texture2D texture);             // Unload texture from GPU memory
+```Euphoria
+function LoadTexture(sequence fileName);       -- Load an image file as texture into GPU memory
+procedure UnloadTexture(sequence texture);             -- Unload texture from GPU memory
 
-void DrawTexture(Texture2D texture, int posX, int posY, Color tint); // Draw a texture in the canvas
+procedure DrawTexture(sequence texture, integer posX, integer posY, sequence tint); -- Draw a texture in the canvas
 ```
 
 Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
@@ -184,18 +184,18 @@ Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
 
 ### Lesson 06: Fonts loading and text drawing
 
-*Lesson code file to review: [06_blocks_game_text.c](lessons/06_blocks_game_text.c)*
+*Lesson code file to review: [06_blocks_game_text.ex](lessons/06_blocks_game_text.ex)*
 
 To draw text, raylib loads a default font on `InitWindow()`, that font is used when drawing text with:
-```c
-void DrawText(const char *text, int posX, int posY, int fontSize, Color color);
+```Euphoria
+procedure DrawText(sequence text, integer posX, integer posY, integer fontSize, sequence color)
 ```
 But raylib users can also load custom fonts, raylib support multiple fonts formats, including TTF format and BMFonts. To load custom fonts and draw with them, use the following functions:
-```c
-Font LoadFont(const char *fileName);         // Load a Font image into GPU 
-void UnloadFont(Font font);                  // Unload Font from GPU memory
+```Euphoria
+sequence LoadFont(const char *fileName)         -- Load a Font image into GPU 
+procedure UnloadFont(Font font)                  -- Unload Font from GPU memory
 
-void DrawTextEx(Font font, const char* text, Vector2 position, int fontSize, int spacing, Color tint);
+procedure DrawTextEx(sequence font,sequence text, sequence position, integer fontSize, integer spacing, sequence tint)
 ```
 
 Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
@@ -210,29 +210,29 @@ Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
 
 To deal with audio on raylib, first of all, audio device must be initialized. To manage audio device, use the following functions:
 ```c
-void InitAudioDevice(void);                 // Initialize audio device and context
-void CloseAudioDevice(void);                // Close the audio device and context (and music stream)
+void InitAudioDevice(void);                 -- Initialize audio device and context
+void CloseAudioDevice(void);                -- Close the audio device and context (and music stream)
 ```
 To load and play sounds, raylib provides the following functions:
 ```c
-Sound LoadSound(const char *fileName);      // Load sound from file into memory
-void UnloadSound(Sound sound);              // Unload sound from memory
+Sound LoadSound(const char *fileName);      -- Load sound from file into memory
+void UnloadSound(Sound sound);              -- Unload sound from memory
 
-void PlaySound(Sound sound);                // Play a sound
-void PauseSound(Sound sound);               // Pause a sound
-void ResumeSound(Sound sound);              // Resume a paused sound
-void StopSound(Sound sound);                // Stop playing a sound
+void PlaySound(Sound sound);                -- Play a sound
+void PauseSound(Sound sound);               -- Pause a sound
+void ResumeSound(Sound sound);              -- Resume a paused sound
+void StopSound(Sound sound);                -- Stop playing a sound
 ```
 To load and stream music, raylib provides the following functions:
 ```c
-Music LoadMusicStream(const char *fileName);    // Load music stream from file
-void UnloadMusicStream(Music music);            // Unload music stream
+Music LoadMusicStream(const char *fileName);    -- Load music stream from file
+void UnloadMusicStream(Music music);            -- Unload music stream
 
-void UpdateMusicStream(Music music);            // Update buffers for music streaming
-void PlayMusicStream(Music music);              // Start music playing
-void PauseMusicStream(Music music);             // Pause music playing
-void ResumeMusicStream(Music music);            // Resume playing paused music
-void StopMusicStream(Music music);              // Stop music playing
+void UpdateMusicStream(Music music);            -- Update buffers for music streaming
+void PlayMusicStream(Music music);              -- Start music playing
+void PauseMusicStream(Music music);             -- Pause music playing
+void ResumeMusicStream(Music music);            -- Resume playing paused music
+void StopMusicStream(Music music);              -- Stop music playing
 ```
 
 Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
