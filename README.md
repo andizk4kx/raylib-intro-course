@@ -101,7 +101,7 @@ Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
 *Lesson code file to review: [02_blocks_game_drawing.c](lessons/02_blocks_game_drawing.c)*
 
 To draw basic shapes, raylib provides the following functions:
-```c
+```Euphoria
 procedure DrawPixel(integer posX, int posY, Color color);
 procedure DrawLine(integer startPosX, integer startPosY, integer endPosX, integer endPosY, sequence color) -- color={r,g,b,a}
 procedure DrawCircle(integer centerX, integer centerY, float radius, sequence color)
@@ -209,30 +209,30 @@ Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
 *Lesson code file to review: [07_blocks_game_audio.c](lessons/07_blocks_game_audio.c)*
 
 To deal with audio on raylib, first of all, audio device must be initialized. To manage audio device, use the following functions:
-```c
-void InitAudioDevice(void);                 -- Initialize audio device and context
-void CloseAudioDevice(void);                -- Close the audio device and context (and music stream)
+```Euphoria
+procedure InitAudioDevice(void)                -- Initialize audio device and context
+procedure CloseAudioDevice(void)                -- Close the audio device and context (and music stream)
 ```
 To load and play sounds, raylib provides the following functions:
-```c
-Sound LoadSound(const char *fileName);      -- Load sound from file into memory
-void UnloadSound(Sound sound);              -- Unload sound from memory
+```Euphoria
+function LoadSound(const char *fileName)      -- Load sound from file into memory
+procedure UnloadSound(Sound sound)              -- Unload sound from memory
 
-void PlaySound(Sound sound);                -- Play a sound
-void PauseSound(Sound sound);               -- Pause a sound
-void ResumeSound(Sound sound);              -- Resume a paused sound
-void StopSound(Sound sound);                -- Stop playing a sound
+procedure PlaySound(Sound sound)               -- Play a sound
+procedure PauseSound(Sound sound)               -- Pause a sound
+procedure ResumeSound(Sound sound)              -- Resume a paused sound
+procedure StopSound(Sound sound)               -- Stop playing a sound
 ```
 To load and stream music, raylib provides the following functions:
-```c
-Music LoadMusicStream(const char *fileName);    -- Load music stream from file
-void UnloadMusicStream(Music music);            -- Unload music stream
+```Euphoria
+function LoadMusicStream(sequence fileName)    -- Load music stream from file
+procedure UnloadMusicStream(sequence music)            -- Unload music stream
 
-void UpdateMusicStream(Music music);            -- Update buffers for music streaming
-void PlayMusicStream(Music music);              -- Start music playing
-void PauseMusicStream(Music music);             -- Pause music playing
-void ResumeMusicStream(Music music);            -- Resume playing paused music
-void StopMusicStream(Music music);              -- Stop music playing
+procedure UpdateMusicStream(sequence music)            -- Update buffers for music streaming
+procedure PlayMusicStream(sequence music)             -- Start music playing
+procedure PauseMusicStream(sequence music)             -- Pause music playing
+procedure ResumeMusicStream(sequence music)            -- Resume playing paused music
+procedure StopMusicStream(sequence music)             -- Stop music playing
 ```
 
 Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
