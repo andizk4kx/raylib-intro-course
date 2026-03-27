@@ -235,7 +235,7 @@ procedure ResumeMusicStream(sequence music)            -- Resume playing paused 
 procedure StopMusicStream(sequence music)             -- Stop music playing
 ```
 
-Recommended [raylib examples](http://www.raylib.com/examples.html) to check:
+Recommended [raylib examples for Phix-Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples) to check:
  - [audio_sound_loading](https://github.com/andizk4kx/raylib-playground/blob/main/examples/audio/audio_sound_loading.ex) - sounds loading and playing
  - [audio_music_stream](https://github.com/andizk4kx/raylib-playground/blob/main/examples/audio/audio_music_stream.ex) - music loading and streaming
 
