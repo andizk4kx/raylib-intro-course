@@ -183,7 +183,7 @@ procedure DrawTexture(sequence texture, integer posX, integer posY, sequence tin
 ```
 
 Recommended [raylib examples for Phix-Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples)  to check:
- - [textures_logo_raylib](http://www.raylib.com/examples/textures/loader.html?name=textures_logo_raylib) - texture loading and drawing
+ - [textures_logo_raylib](https://github.com/andizk4kx/raylib-playground/blob/main/examples/textures/textures_logo_raylib.ex) - texture loading and drawing
  - [textures_rectangle](http://www.raylib.com/examples/textures/loader.html?name=textures_rectangle) - texture loading and piece drawing
 
 
