@@ -98,7 +98,7 @@ On our game loop (Update/Draw) we will just check for current game state and we 
 
 Recommended [raylib examples for Phix-Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples) to check:
  - [core_basic_window](https://github.com/andizk4kx/raylib-playground/blob/main/examples/core/core_basic_window.ex) - simple code showing a videogame life cycle
- - [core_basic_screen_manager](https://github.com/raysan5/raylib/blob/master/examples/core/core_basic_screen_manager.c) - basic screens management structure
+ - [core_basic_screen_manager](https://github.com/andizk4kx/raylib-playground/blob/main/examples/core/core_basic_screen_manager.ex) - basic screens management structure
  
 
 ### Lesson 02: Draw basic shapes (circle, rectangle)
