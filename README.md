@@ -118,7 +118,7 @@ Most of those functions are self explanatory, they must be called in the draw pa
 
 Recommended [raylib examples for Phix-Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples) to check:
  - [shapes_basic_shapes](https://github.com/andizk4kx/raylib-playground/blob/main/examples/shapes/shapes_basic_shapes.ex) - basic shapes drawing
- - [shapes_logo_raylib](http://www.raylib.com/examples/shapes/loader.html?name=shapes_logo_raylib) - raylib logo drawn using shapes
+ - [shapes_logo_raylib](https://github.com/andizk4kx/raylib-playground/blob/main/examples/shapes/shapes_logo_raylib.ex) - raylib logo drawn using shapes
 
 
 ### Lesson 03: Inputs management (keyboard, mouse)
