@@ -1,3 +1,8 @@
+# raylib Introduction Course ported to Phix/Euphoria
+
+All lessons and examples in this repository have been ported so they can be used with Phix or Euphoria.
+To run the lessons, you will need either [Euphoria](https://openeuphoria.org/) or [Phix](http://phix.x10.mx/) in their current 64-bit versions: [Euphoria 4.1](https://github.com/OpenEuphoria/euphoria) or [Phix 1.0.6](https://github.com/petelomax/Phix) 
+The required wrapper (binding) is included here along with the lessons. This wrapper supports only Windows 64-bit.
 
 # raylib Introduction Course
 
@@ -192,8 +197,8 @@ procedure DrawText(sequence text, integer posX, integer posY, integer fontSize, 
 ```
 But raylib users can also load custom fonts, raylib support multiple fonts formats, including TTF format and BMFonts. To load custom fonts and draw with them, use the following functions:
 ```Euphoria
-sequence LoadFont(const char *fileName)         -- Load a Font image into GPU 
-procedure UnloadFont(Font font)                  -- Unload Font from GPU memory
+sequence LoadFont(sequence fileName)         -- Load a Font image into GPU 
+procedure UnloadFont(sequence font)                  -- Unload Font from GPU memory
 
 procedure DrawTextEx(sequence font,sequence text, sequence position, integer fontSize, integer spacing, sequence tint)
 ```
@@ -201,7 +206,7 @@ procedure DrawTextEx(sequence font,sequence text, sequence position, integer fon
 Recommended [raylib examples for Phix-Euphoria](https://github.com/andizk4kx/raylib-playground/tree/main/examples)  to check:
  - [text_sprite_fonts](https://github.com/andizk4kx/raylib-playground/blob/main/examples/text/text_font_spritefonts.ex) - sprite fonts loading and drawing
  - [text_bmfonts_ttf](https://github.com/andizk4kx/raylib-playground/blob/main/examples/text/text_font_loading.ex) - bmfonts and ttf fonts loading
- - [text_writing_anim](http://www.raylib.com/examples/text/loader.html?name=text_writing_anim) - text writting animation effect
+ - [text_writing_anim](https://github.com/andizk4kx/raylib-playground/blob/main/examples/text/text_writing_anim.ex) - text writting animation effect
 
 
 ### Lesson 07: Sounds and music loading and playing
@@ -215,13 +220,13 @@ procedure CloseAudioDevice(void)                -- Close the audio device and co
 ```
 To load and play sounds, raylib provides the following functions:
 ```Euphoria
-function LoadSound(const char *fileName)      -- Load sound from file into memory
-procedure UnloadSound(Sound sound)              -- Unload sound from memory
+function LoadSound(sequence fileName)      -- Load sound from file into memory
+procedure UnloadSound(sequence sound)              -- Unload sound from memory
 
-procedure PlaySound(Sound sound)               -- Play a sound
-procedure PauseSound(Sound sound)               -- Pause a sound
-procedure ResumeSound(Sound sound)              -- Resume a paused sound
-procedure StopSound(Sound sound)               -- Stop playing a sound
+procedure PlaySound(sequence sound)               -- Play a sound
+procedure PauseSound(sequence sound)               -- Pause a sound
+procedure ResumeSound(sequence sound)              -- Resume a paused sound
+procedure StopSound(sequence sound)               -- Stop playing a sound
 ```
 To load and stream music, raylib provides the following functions:
 ```Euphoria

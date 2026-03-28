@@ -4,14 +4,13 @@
 *   LESSON 07:      audio
 *   DESCRIPTION:    Sounds and music loading and playing
 *
-*   COMPILATION (Windows - MinGW):
-*       gcc -o $(NAME_PART).exe $(FILE_NAME) -lraylib -lopengl32 -lgdi32 -lwinmm -Wall -std=c99
+*  Execute with either
 *
-*   COMPILATION (Linux - GCC):
-*       gcc -o $(NAME_PART).exe $(FILE_NAME) -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+*  Euphoria eui filename.ex
+*  or
+*  Phix p64 filename.ex
 *
 *   Example originally created with raylib 2.0, last time updated with raylib 4.2
-
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
@@ -19,7 +18,7 @@
 *
 ********************************************************************************************/
 --adapted to Euphoria/Phix 2026 Andreas Wagner
-include "../../raylib64.e"
+include "raylib64.e"
 --/*
 integer true=1
 integer false=0
@@ -99,8 +98,8 @@ enum br_position,br_size,br_bounds,br_resistance,br_active
     sequence fxBounce = LoadSound("resources/bounce.wav")
     sequence fxExplode = LoadSound("resources/explosion.wav")
     
-    sequence music = LoadMusicStream("resources/qt-plimp.xm")
-    --sequence music = LoadMusicStream("resources/blockshock.mod")  --file not in repo
+    --sequence music = LoadMusicStream("resources/qt-plimp.xm")
+    sequence music = LoadMusicStream("resources/blockshock.mod")  --file was not in repo
     
     PlayMusicStream(music)      -- Start music streaming
 

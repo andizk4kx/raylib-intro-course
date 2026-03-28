@@ -5,14 +5,13 @@ without warning --Don't bug me about unused variables
 *   LESSON 02:      basic drawing
 *   DESCRIPTION:    Basic shapes drawing (lines, circles, rectangles)
 *
-*   COMPILATION (Windows - MinGW):
-*       gcc -o $(NAME_PART).exe $(FILE_NAME) -lraylib -lopengl32 -lgdi32 -lwinmm -Wall -std=c99
+*  Execute with either
 *
-*   COMPILATION (Linux - GCC):
-*       gcc -o $(NAME_PART).exe $(FILE_NAME) -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+*  Euphoria eui filename.ex
+*  or
+*  Phix p64 filename.ex
 *
 *   Example originally created with raylib 2.0, last time updated with raylib 4.2
-
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
@@ -20,7 +19,7 @@ without warning --Don't bug me about unused variables
 *
 ********************************************************************************************/
 --adapted to Euphoria/Phix 2026 Andreas Wagner
-include "../../raylib64.e"
+include "raylib64.e"
 --/*
 integer true=1
 integer false=0
