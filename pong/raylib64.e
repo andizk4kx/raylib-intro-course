@@ -155,6 +155,22 @@ sequence result={0,0,0}
 return result
 end function
 
+constant size_boundingbox=32
+global sequence Tboundingbox={{0,0,0},{0,0,0}} 
+function poke_boundingbox(atom addr,sequence box)
+atom dummy
+    dummy=poke_vector3(addr,box[1])
+    dummy=poke_vector3(addr+12,box[2]) -- overlap padding
+    return addr
+end function
+
+function peek_boundingbox(atom mem)
+sequence result=Tboundingbox
+        result[1]=peek_vector3(mem)
+        result[2]=peek_vector3(mem+12)
+return result
+end function
+
 constant size_vector4=16
 function poke_vector4(atom addr,sequence vector4)
     poke(addr,atom_to_float32(vector4[1]))
@@ -400,6 +416,174 @@ dummy=  poke_texture(mem+12,font[4])
         poke8(mem+40,font[6])
 return mem
 end function
+
+constant size_matrix=64
+constant Tmatrix={{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}}
+function peek_matrix(atom mem)
+sequence M=Tmatrix
+-- Erste Zeile von M (Index 1)
+M[1][1] = peek_float32(mem + 0)
+M[1][2] = peek_float32(mem + 16)
+M[1][3] = peek_float32(mem + 32)
+M[1][4] = peek_float32(mem + 48)
+
+-- Zweite Zeile von M (Index 2)
+M[2][1] = peek_float32(mem + 4)
+M[2][2] = peek_float32(mem + 20)
+M[2][3] = peek_float32(mem + 36)
+M[2][4] = peek_float32(mem + 52)
+
+-- Dritte Zeile von M (Index 3)
+M[3][1] = peek_float32(mem + 8)
+M[3][2] = peek_float32(mem + 24)
+M[3][3] = peek_float32(mem + 40)
+M[3][4] = peek_float32(mem + 56)
+
+-- Vierte Zeile von M (Index 4)
+M[4][1] = peek_float32(mem + 12)
+M[4][2] = peek_float32(mem + 28)
+M[4][3] = peek_float32(mem + 44)
+M[4][4] = peek_float32(mem + 60)
+return M
+end function
+
+
+function poke_matrix(atom mem,sequence M)
+    -- Spalte 1 (X-Achse)
+poke_float32(mem + 0,  M[1][1])
+poke_float32(mem + 4,  M[2][1])
+poke_float32(mem + 8,  M[3][1])
+poke_float32(mem + 12, M[4][1])
+
+-- Spalte 2 (Y-Achse)
+poke_float32(mem + 16, M[1][2])
+poke_float32(mem + 20, M[2][2])
+poke_float32(mem + 24, M[3][2])
+poke_float32(mem + 28, M[4][2])
+
+-- Spalte 3 (Z-Achse)
+poke_float32(mem + 32, M[1][3])
+poke_float32(mem + 36, M[2][3])
+poke_float32(mem + 40, M[3][3])
+poke_float32(mem + 44, M[4][3])
+
+-- Spalte 4 (Translation/Position)
+poke_float32(mem + 48, M[1][4])
+poke_float32(mem + 52, M[2][4])
+poke_float32(mem + 56, M[3][4])
+poke_float32(mem + 60, M[4][4])
+return mem
+end function
+
+
+global enum matmap_texture=1,matmap_color=2
+constant size_materialmap=28 --28?
+constant Tmaterialmap={Ttexture,{0,0,0,0},0}
+global function peek_materialmap(atom mem)
+sequence matmap=Tmaterialmap
+    matmap[1]=peek_texture(mem)
+    matmap[2]=peek({mem+20,4})
+    matmap[3]=peek_float32(mem+24)
+return matmap
+end function
+
+global function poke_materialmap(atom mem,sequence matmap)
+atom dummy
+    dummy=poke_texture(mem,matmap[1])
+    poke(mem+20,matmap[2])
+    poke_float32(mem+24,matmap[3])
+return mem
+end function
+
+global enum mat_shader=1
+constant size_material=40
+constant Tmaterial={Tshader,0,0,0,0,0}
+global function peek_material(atom mem)
+sequence mat=Tmaterial
+    mat[1]=peek_shader(mem)
+    mat[2]=peek8u(mem+16) --pointer to materialmaps
+    mat[3]=peek_float32(mem+24)
+    mat[4]=peek_float32(mem+28)
+    mat[5]=peek_float32(mem+32)
+    mat[6]=peek_float32(mem+36)
+return mat
+end function
+
+global function poke_material(atom mem,sequence mat)
+atom dummy
+    dummy=poke_shader(mem,mat[1])
+    poke8(mem+16,mat[2])  -- pointer to materialmaps
+    poke_float32(mem+24,mat[3])
+    poke_float32(mem+28,mat[4])
+    poke_float32(mem+32,mat[5])
+    poke_float32(mem+36,mat[6])
+return mem
+end function
+
+--model[10]=materials model[10][1] materialmaps model[10][1][2][1]=texture material 0 materialmap 0
+global enum mod_materials=10,mod_materialmaps=2 
+constant  size_model=120
+constant Tmaterials={Tmaterial,repeat(Tmaterialmap,12)}
+constant Tmodel={Tmatrix,0,0,0,0,0,0,0,0}
+global function peek_model(atom mem)
+    -- Holt die Rohdaten der Model-Struktur (64-Bit Layout)
+    sequence model = {
+        peek_matrix(mem),      -- [1] transform (64 Bytes)
+        peek4s(mem + 64),      -- [2] meshCount (4 Bytes)
+        peek4s(mem + 68),      -- [3] materialCount (4 Bytes)
+        peek8u(mem + 72),      -- [4] meshes (Pointer, 8 Bytes)
+        peek8u(mem + 80),      -- [5] materials (Pointer, 8 Bytes)
+        peek8u(mem + 88),      -- [6] meshMaterial (Pointer, 8 Bytes)
+        peek4s(mem + 96),      -- [7] boneCount (4 Bytes)
+        peek8u(mem + 104),     -- [8] bones (Pointer, 8 Bytes)
+        peek8u(mem + 112)      -- [9] bindPose (Pointer, 8 Bytes)
+    }                           --[10] materials as a sequence
+    
+sequence materials=repeat(Tmaterials,model[3])
+for i=1 to model[3] do
+    materials[i][1]=peek_material(model[5]+((i-1)*size_material))
+    for j=1 to 12  do
+        materials[i][2][j]=peek_materialmap(materials[i][1][2]+((j-1)*size_materialmap))
+    end for
+end for
+model =append(model,materials)
+    return model
+end function
+
+global function poke_model(atom mem, sequence modl)
+atom dummy
+    -- mod = {matrix, meshCount, materialCount, pMeshes, pMaterials, pMeshMaterial, boneCount, pBones, pBindPose}
+    
+    -- 1. Die Matrix (belegt Offset 0 bis 63)
+    dummy=poke_matrix(mem, modl[1])
+    
+    -- 2. Integers (4 Bytes)
+    poke4(mem + 64, modl[2]) -- meshCount
+    poke4(mem + 68, modl[3]) -- materialCount
+    
+    -- 3. Pointer (8 Bytes auf 64-Bit)
+    poke8(mem + 72, modl[4]) -- meshes (pointer)
+    poke8(mem + 80, modl[5]) -- materials (pointer)
+    poke8(mem + 88, modl[6]) -- meshMaterial (pointer)
+    
+    -- 4. Animation / Bones
+    poke4(mem + 96, modl[7])  -- boneCount (4 Bytes)
+    -- Padding beachten: Raylib lässt oft 4 Bytes frei für 8-Byte Alignment des nächsten Pointers
+    poke8(mem + 104, modl[8]) -- bones (pointer)
+    poke8(mem + 112, modl[9]) -- bindPose (pointer)
+
+sequence materials=modl[10]
+atom addr
+for i=1 to modl[3] do
+    addr=(modl[5]+((i-1)*size_material))
+    dummy=poke_material(addr,materials[i][1])
+    for j=1 to 12  do
+        dummy=poke_materialmap(materials[i][1][2]+((j-1)*size_materialmap),materials[i][2][j])
+    end for
+end for
+return mem
+end function
+
 
 -- Helper (kind off a primitive state-manager) for GUI not in Raylib API handling for more Phix/Euphoria Style coding (less Pointer)
 sequence ids={{0,allocate(8)}}
@@ -3387,7 +3571,7 @@ public function ColorFromNormalized(sequence norm)
 end function
 
 public function ColorToHSV(sequence col)
-        return c_func(xColorToHSV,{col})
+        return c_func(xColorToHSV,{bytes_to_int(col)})
 end function
 
 public function ColorFromHSV(atom hue,atom saturation,atom val)
@@ -3464,16 +3648,16 @@ public function GetColor(atom hex)
         return int_to_bytes(c_func(xGetColor,{hex}))
 end function
 
-public function GetPixelColor(atom ptr,atom format)
-        return int_to_bytes(c_func(xGetPixelColor,{ptr,format}))
+public function GetPixelColor(atom ptr,atom _format)
+        return int_to_bytes(c_func(xGetPixelColor,{ptr,_format}))
 end function
 
-public procedure SetPixelColor(atom ptr,sequence col,atom format)
-        c_proc(xSetPixelColor,{ptr,col,format})
+public procedure SetPixelColor(atom ptr,sequence col,atom _format)
+        c_proc(xSetPixelColor,{ptr,bytes_to_int(col),_format})
 end procedure
 
-public function GetPixelDataSize(atom width,atom height,atom format)
-        return c_func(xGetPixelDataSize,{width,height,format})
+public function GetPixelDataSize(atom width,atom height,atom _format)
+        return c_func(xGetPixelDataSize,{width,height,_format})
 end function
 
 --Font loading functions
@@ -3705,7 +3889,10 @@ public constant xTextCopy = define_c_func(ray,"+TextCopy",{C_POINTER,C_STRING},C
                                 xTextToCamel = define_c_func(ray,"+TextToCamel",{C_STRING},C_STRING)
                                 
 public function TextCopy(object dst,sequence src)
-        return c_func(xTextCopy,{dst,src})
+        --dst=src
+        -- need to wrap this in Eu/Phix
+        return length(dst)
+        --return c_func(xTextCopy,{dst,src})
 end function
 
 public function TextIsEqual(sequence text,sequence text2)   
@@ -3725,16 +3912,25 @@ text=match_replace("%i",text,"%d")
 end function
 
 public function TextSubtext(sequence text,atom pos,atom len)
+if pos=0 then pos=1 
+end if
+
+if pos+len>length(text) 
+then
+    return text[pos..$] 
+end if
         return text[pos..pos+len]
     --  return c_func(xTextSubtext,{text,pos,len})
 end function
 
 public function TextReplace(sequence text,sequence replace_,sequence _by)
-        return c_func(xTextReplace,{text,replace_,_by})
+        return match_replace(text,replace_,_by)
+        --return c_func(xTextReplace,{text,replace_,_by})
 end function
 
-public function TextInsert(sequence text,sequence insert,atom pos)
-        return c_func(xTextInsert,{text,insert,pos})
+public function TextInsert(sequence text,sequence _insert,atom pos)
+        return text[1..pos]&_insert&text[pos+1..$]
+        --return c_func(xTextInsert,{text,insert,pos})
 end function
 
 public function TextJoin(sequence text,atom count,sequence del)
@@ -3810,23 +4006,39 @@ public constant xDrawLine3D = define_c_proc(ray,"+DrawLine3D",{Vector3,Vector3,C
                                 xDrawGrid = define_c_proc(ray,"+DrawGrid",{C_INT,C_FLOAT})
                                 
 public procedure DrawLine3D(sequence start,sequence ep,sequence col)
-        c_proc(xDrawLine3D,{start,ep,col})
+atom v1=allocate(size_vector3)
+atom v2=allocate(size_vector3)
+        c_proc(xDrawLine3D,{poke_vector3(v1,start),poke_vector3(v2,ep),bytes_to_int(col)})
+free(v1)
+free(v2)
 end procedure
 
 public procedure DrawPoint3D(sequence pos,sequence col)
-        c_proc(xDrawPoint3D,{pos,col})
+atom v1=allocate(size_vector3)
+        c_proc(xDrawPoint3D,{poke_vector3(v1,pos),bytes_to_int(col)})
+free(v1)
 end procedure
 
 public procedure DrawCircle3D(sequence center,atom rad,sequence rotaxis,atom rotang,sequence col)
-        c_proc(xDrawCircle3D,{center,rad,rotaxis,rotang,col})
+atom v1=allocate(size_vector3)
+atom v2=allocate(size_vector3)
+        c_proc(xDrawCircle3D,{poke_vector3(v1,center),rad,poke_vector3(v2,rotaxis),rotang,bytes_to_int(col)})
+free(v1)
+free(v2)
 end procedure
 
-public procedure DrawTriangle3D(sequence v,sequence v2,sequence v3,sequence col)
-        c_proc(xDrawTriangle3D,{v,v2,v3,col})
+public procedure DrawTriangle3D(sequence vd1,sequence vd2,sequence vd3,sequence col)
+atom v1=allocate(size_vector3)
+atom v2=allocate(size_vector3)
+atom v3=allocate(size_vector3)
+        c_proc(xDrawTriangle3D,{poke_vector3(v1,vd1),poke_vector3(v2,vd2),poke_vector3(v3,vd3),bytes_to_int(col)})
+free(v1)
+free(v2)
+free(v3)
 end procedure
 
 public procedure DrawTriangleStrip3D(atom pts,atom count,sequence col)
-        c_proc(xDrawTriangleStrip3D,{pts,count,col})
+        c_proc(xDrawTriangleStrip3D,{pts,count,bytes_to_int(col)})
 end procedure
 
 public procedure DrawCube(sequence pos,atom width,atom height,atom len,sequence col)
@@ -3870,35 +4082,59 @@ free(v1)
 end procedure
 
 public procedure DrawSphereEx(sequence pos,atom rad,atom rings,atom slices,sequence col)
-        c_proc(xDrawSphereEx,{pos,rad,rings,slices,col})
+atom v1=allocate(size_vector3)
+        c_proc(xDrawSphereEx,{poke_vector3(v1,pos),rad,rings,slices,bytes_to_int(col)})
+free(v1)
 end procedure
 
 public procedure DrawSphereWires(sequence pos,atom rad,atom rings,atom slices,sequence col)
-        c_proc(xDrawSphereWires,{pos,rad,rings,slices,col})
+atom v1=allocate(size_vector3)
+        c_proc(xDrawSphereWires,{poke_vector3(v1,pos),rad,rings,slices,bytes_to_int(col)})
+free(v1)
 end procedure
 
 public procedure DrawCylinder(sequence pos,atom radtop,atom radbot,atom height,atom slices,sequence col)
-        c_proc(xDrawCylinder,{pos,radtop,radbot,height,slices,col})
+atom v1=allocate(size_vector3)
+        c_proc(xDrawCylinder,{poke_vector3(v1,pos),radtop,radbot,height,slices,bytes_to_int(col)})
+free(v1)
 end procedure
 
 public procedure DrawCylinderEx(sequence start,sequence ep,atom startrad,atom endrad,atom sides,sequence col)
-        c_proc(xDrawCylinderEx,{start,ep,startrad,endrad,sides,col})
+atom v1=allocate(size_vector3)
+atom v2=allocate(size_vector3)
+        c_proc(xDrawCylinderEx,{poke_vector3(v1,start),poke_vector3(v2,ep),startrad,endrad,sides,bytes_to_int(col)})
+free(v1)
+free(v2)
 end procedure
 
 public procedure DrawCylinderWires(sequence pos,atom radtop,atom radbot,atom height,atom slices,sequence col)
-        c_proc(xDrawCylinderWires,{pos,radtop,radbot,height,slices,col})
+atom v1=allocate(size_vector3)
+        c_proc(xDrawCylinderWires,{poke_vector3(v1,pos),radtop,radbot,height,slices,col})
+free(v1)
 end procedure
 
 public procedure DrawCylinderWiresEx(sequence start,sequence ep,atom startrad,atom endrad,atom sides,sequence col)
-        c_proc(xDrawCylinderWiresEx,{start,ep,startrad,endrad,sides,col})
+atom v1=allocate(size_vector3)
+atom v2=allocate(size_vector3)
+        c_proc(xDrawCylinderWiresEx,{poke_vector3(v1,start),poke_vector3(v2,ep),startrad,endrad,sides,bytes_to_int(col)})
+free(v1)
+free(v2)
 end procedure
 
 public procedure DrawCapsule(sequence startpos,sequence ep,atom rad,atom slices,atom rings,sequence col)
-        c_proc(xDrawCapsule,{startpos,ep,rad,slices,rings,col})
+atom v1=allocate(size_vector3)
+atom v2=allocate(size_vector3)
+        c_proc(xDrawCapsule,{poke_vector3(v1,startpos),poke_vector3(v2,ep),rad,slices,rings,bytes_to_int(col)})
+free(v1)
+free(v2)
 end procedure
 
 public procedure DrawCapsuleWires(sequence start,sequence ep,atom rad,atom slices,atom rings,sequence col)
-        c_proc(xDrawCapsuleWires,{start,ep,rad,slices,rings,col})
+atom v1=allocate(size_vector3)
+atom v2=allocate(size_vector3)
+        c_proc(xDrawCapsuleWires,{poke_vector3(v1,start),poke_vector3(v2,ep),rad,slices,rings,bytes_to_int(col)})
+free(v1)
+free(v2)
 end procedure
 
 public procedure DrawPlane(sequence pos,sequence size,sequence  col)
@@ -3906,9 +4142,9 @@ atom mem=allocate(size_vector3)
         c_proc(xDrawPlane,{poke_vector3(mem,pos),V2toReg(size),bytes_to_int(col)})
 free(mem)
 end procedure
-
+--CHECK ray is still missing
 public procedure DrawRay(sequence ray,sequence col)
-        c_proc(xDrawPlane,{ray,col})
+        c_proc(xDrawPlane,{ray,bytes_to_int(col)})
 end procedure
 
 public procedure DrawGrid(atom slices,atom space)
@@ -3916,14 +4152,22 @@ public procedure DrawGrid(atom slices,atom space)
 end procedure
 
 --Model 3D Loading functions
-public constant xLoadModel = define_c_func(ray,"+LoadModel",{C_STRING},Model),
+public constant xLoadModel = define_c_func(ray,"+LoadModel",{C_HPTR,C_STRING},Model),
                                 xLoadModelFromMesh = define_c_func(ray,"+LoadModelFromMesh",{Mesh},Model),
                                 xIsModelValid = define_c_func(ray,"+IsModelValid",{Model},C_BOOL),
                                 xUnloadModel = define_c_proc(ray,"+UnloadModel",{Model}),
-                                xGetModelBoundingBox = define_c_func(ray,"+GetModelBoundingBox",{Model},BoundingBox)
+                                xGetModelBoundingBox = define_c_func(ray,"+GetModelBoundingBox",{C_HPTR,Model},BoundingBox)
                                 
 public function LoadModel(sequence fName)
-        return c_func(xLoadModel,{fName})
+atom pstr=allocate_string(fName)
+atom mem=allocate(size_model)
+atom ptr
+sequence result=Tmodel
+        ptr= c_func(xLoadModel,{mem,pstr})
+result=peek_model(ptr)
+free(pstr)
+free(mem)
+return result
 end function
 
 public function LoadModelFromMesh(sequence mesh)
@@ -3935,11 +4179,21 @@ public function IsModelValid(sequence model)
 end function
 
 public procedure UnloadModel(sequence model)
-        c_proc(xUnloadModel,{model})
+atom mem=allocate(size_model)
+        c_proc(xUnloadModel,{poke_model(mem,model)})
+free(mem)
 end procedure
 
 public function GetModelBoundingBox(sequence model)
-        return c_func(xGetModelBoundingBox,{model})
+atom modl=allocate(size_model)
+atom mem=allocate(size_boundingbox)
+sequence result
+atom ptr
+        ptr = c_func(xGetModelBoundingBox,{mem,poke_model(modl,model)})
+result=peek_boundingbox(ptr)
+free(mem)
+free(modl)
+return result
 end function
 
 --Model drawing functions
@@ -3955,7 +4209,11 @@ public constant xDrawModel = define_c_proc(ray,"+DrawModel",{Model,Vector3,C_FLO
                                 xDrawBillboardPro = define_c_proc(ray,"+DrawBillboardPro",{Camera,Texture2D,Rectangle,Vector3,Vector3,Vector2,Vector2,C_FLOAT,C_Color})
                                 
 public procedure DrawModel(sequence model,sequence pos,atom scale,sequence tint)
-        c_proc(xDrawModel,{model,pos,scale,tint})
+atom modl=allocate(size_model)
+atom vec1=allocate(size_vector3)
+        c_proc(xDrawModel,{poke_model(modl,model),poke_vector3(vec1,pos),scale,bytes_to_int(tint)})
+free(modl)
+free(vec1)
 end procedure
 
 public procedure DrawModelEx(sequence model,sequence pos,sequence rotAxis,atom rotAng,sequence scale,sequence tint)
@@ -3979,7 +4237,9 @@ public procedure DrawModelPointsEx(sequence model,sequence pos,sequence rotAxis,
 end procedure
 
 public procedure DrawBoundingBox(sequence box,sequence col)
-        c_proc(xDrawBoundingBox,{box,col})
+atom box1=allocate(size_boundingbox)
+        c_proc(xDrawBoundingBox,{poke_boundingbox(box1,box),bytes_to_int(col)})
+free(box1)
 end procedure
 --{Camera,Texture2D,Vector3,C_FLOAT,C_Color}
 public procedure DrawBillboard(sequence cam,sequence tex,sequence pos,atom scale,sequence tint)
@@ -4190,15 +4450,27 @@ public constant xCheckCollisionSpheres = define_c_func(ray,"+CheckCollisionSpher
                                 xGetRayCollisionQuad = define_c_func(ray,"+GetRayCollisionQuad",{Ray,Vector3,Vector3,Vector3,Vector3},RayCollision)
                                 
 public function CheckCollisionSpheres(sequence center,atom rad,sequence center2,atom rad2)
-        return c_func(xCheckCollisionSpheres,{center,rad,center2,rad2})
+atom vec1=allocate(size_vector3)
+atom vec2=allocate(size_vector3)
+        return and_bits(c_func(xCheckCollisionSpheres,{poke_vector3(vec1,center),rad,poke_vector3(vec2,center2),rad2}),1)
+free(vec1)
+free(vec2)
 end function
 
 public function CheckCollisionBoxes(sequence box,sequence box2)
-        return c_func(xCheckCollisionBoxes,{box,box2})
+atom box_1=allocate(size_boundingbox)
+atom box_2=allocate(size_boundingbox)
+        return and_bits(c_func(xCheckCollisionBoxes,{poke_boundingbox(box_1,box),poke_boundingbox(box_2,box2)}),1)
+free(box_1)
+free(box_2)
 end function
 
 public function CheckCollisionBoxSphere(sequence box,sequence center,atom rad)
-        return c_func(xCheckCollisionBoxSphere,{box,center,rad})
+atom box_1=allocate(size_boundingbox)
+atom vec1=allocate(size_boundingbox)
+        return c_func(xCheckCollisionBoxSphere,{poke_boundingbox(box_1,box),poke_vector3(vec1,center),rad})
+free(box_1)
+free(vec1)
 end function
 
 public function GetRayCollisionSphere(sequence ray,sequence center,atom rad)
@@ -4634,6 +4906,10 @@ end procedure
 --# raymath functions   appended as needed                                                              #
 --#                                                                                                     #
 --#########################################################################################################
+global function Vector2Zero()
+    return {0,0}
+end function
+
 constant xVector2Normalize = define_c_func(ray,"+Vector2Normalize",{Vector2},Vector2)
 
 global function Vector2Normalize(sequence v)
@@ -4655,6 +4931,12 @@ end function
 --integer x=1,y=2
 --  return { v1[x] + v2[x], v1[y] + v2[y] }
 --end function
+
+constant xVector2Distance = define_c_func(ray,"+Vector2Distance",{Vector2,Vector2},C_FLOAT)
+
+global function Vector2Distance(sequence v,sequence v2)
+         return c_func(xVector2Distance,{V2toReg(v),V2toReg(v2)})
+end function
 
 constant xVector2Scale = define_c_func(ray,"+Vector2Scale",{Vector2,C_FLOAT},Vector2)
 
@@ -4836,6 +5118,26 @@ free(vec1)
 free(vec2)
 free(mem)
 return result
+end function
+
+constant xMatrixRotateXYZ = define_c_func(ray,"+MatrixRotateXYZ",{C_HPTR,Vector3},Matrix)
+
+global function MatrixRotateXYZ(sequence ang)
+atom mat = allocate(size_matrix)
+atom vec=allocate(size_vector3)
+atom ptr
+sequence matrix
+        ptr = c_func(xMatrixRotateXYZ,{mat,poke_vector3(vec,ang)})
+matrix=peek_matrix(ptr)
+free(mat)
+free(vec)
+return matrix
+end function
+
+constant xMatrixRotateZYX = define_c_func(ray,"+MatrixRotateZYX",{Vector3},Matrix)
+
+global function MatrixRotateZYX(sequence ang)
+        return c_func(xMatrixRotateZYX,{ang})
 end function
 
 
