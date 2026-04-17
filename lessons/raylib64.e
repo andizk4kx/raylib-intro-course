@@ -595,6 +595,80 @@ end for
 return mem
 end function
 
+global sequence Tmesh=repeat(0,16)
+constant size_mesh=120
+global function peek_mesh(atom pMesh)
+    -- pMesh: Pointer auf die Mesh-Struktur im RAM
+    -- Rückgabe: Eine Sequence mit allen Mesh-Daten und Pointern
+    
+    sequence mesh = {
+        peek4s(pMesh + 0),      -- [1] vertexCount
+        peek4s(pMesh + 4),      -- [2] triangleCount
+        
+        -- Attribut-Pointer (8-Byte)
+        peek8u(pMesh + 8),      -- [3] vertices (float*)
+        peek8u(pMesh + 16),     -- [4] texcoords (float*)
+        peek8u(pMesh + 24),     -- [5] texcoords2 (float*)
+        peek8u(pMesh + 32),     -- [6] normals (float*)
+        peek8u(pMesh + 40),     -- [7] tangents (float*)
+        peek8u(pMesh + 48),     -- [8] colors (uchar*)
+        peek8u(pMesh + 56),     -- [9] indices (ushort*)
+        
+        -- Animation / Skinning
+        peek4s(pMesh + 64),     -- [10] boneCount (int)
+        -- (+4 Bytes Padding hier, da der nächste Wert ein Pointer ist)
+        peek8u(pMesh + 72),     -- [11] boneIndices (uchar*)
+        peek8u(pMesh + 80),     -- [12] boneWeights (float*)
+        
+        -- CPU Skinning / AnimData
+        peek8u(pMesh + 88),     -- [13] animVertices (float*)
+        peek8u(pMesh + 96),     -- [14] animNormals (float*)
+        
+        -- Rendering IDs
+        peek4u(pMesh + 104),    -- [15] vaoId (uint)
+        -- (+4 Bytes Padding hier, da der nächste Wert ein Pointer ist)
+        peek8u(pMesh + 112)     -- [16] vboId (uint* - Pointer auf ID-Array)
+    }
+    
+    return mesh
+end function
+
+function poke_mesh(atom mem, sequence mesh)
+    -- mesh = {vertexCount(1), triangleCount(2), vertices(3), texcoords(4), 
+    --         texcoords2(5), normals(6), tangents(7), colors(8), indices(9), 
+    --         boneCount(10), boneIndices(11), boneWeights(12), 
+    --         animVertices(13), animNormals(14), vaoId(15), vboId(16)}
+
+    poke4(mem + 0,  mesh[1])   -- vertexCount
+    poke4(mem + 4,  mesh[2])   -- triangleCount
+    
+    -- Vertex attributes data (Pointer)
+    poke8(mem + 8,  mesh[3])   -- vertices
+    poke8(mem + 16, mesh[4])   -- texcoords
+    poke8(mem + 24, mesh[5])   -- texcoords2
+    poke8(mem + 32, mesh[6])   -- normals
+    poke8(mem + 40, mesh[7])   -- tangents
+    poke8(mem + 48, mesh[8])   -- colors
+    poke8(mem + 56, mesh[9])   -- indices
+
+    -- Skin data / Animation
+    poke4(mem + 64, mesh[10])  -- boneCount (int)
+    -- Offset 68 ist Padding (4 Bytes)
+    poke8(mem + 72, mesh[11])  -- boneIndices (Pointer)
+    poke8(mem + 80, mesh[12])  -- boneWeights (Pointer)
+
+    -- CPU Skinning data
+    poke8(mem + 88, mesh[13])  -- animVertices (Pointer)
+    poke8(mem + 96, mesh[14])  -- animNormals (Pointer)
+
+    -- OpenGL identifiers
+    poke4(mem + 104, mesh[15]) -- vaoId (uint)
+    -- Offset 108 ist Padding (4 Bytes)
+    poke8(mem + 112, mesh[16]) -- vboId (uint* Pointer)
+
+    return mem
+end function
+
 
 -- Helper (kind off a primitive state-manager) for GUI not in Raylib API handling for more Phix/Euphoria Style coding (less Pointer)
 sequence ids={{0,allocate(8)}}
@@ -2828,7 +2902,7 @@ end function
 
 global function CheckCollisionCircleRec(sequence center,atom rad,sequence rec)
 atom mem=allocate(size_rectangle)
-        return c_func(xCheckCollisionCircleRec,{V2toReg(center),rad,poke_rectangle(mem,rec)})
+        return and_bits(c_func(xCheckCollisionCircleRec,{V2toReg(center),rad,poke_rectangle(mem,rec)}),1)
 free(mem)
 end function
 
@@ -3293,15 +3367,29 @@ global procedure ImageColorReplace(atom image,sequence color,sequence replace)
 end procedure
 
 global function LoadImageColors(sequence image)
-        return c_func(xLoadImageColors,{image})
+atom mem=allocate(size_image)
+integer width=2,height=3
+integer numPixels = image[width] * image[height]
+atom pPixels=c_func(xLoadImageColors,{poke_image(mem,image)})
+---- Lies alle Bytes auf einmal 
+sequence rawBytes = peek({pPixels, numPixels * 4})
+--  Die Farben als {R,G,B,A} Gruppen:
+sequence colors = {}
+for i=1 to length(rawBytes) by 4 do
+    colors = append(colors, {rawBytes[i], rawBytes[i+1], rawBytes[i+2], rawBytes[i+3]})
+end for
+colors=append(colors,pPixels) -- pointer noch anhaengen zum wieder freigeben
+free(mem)
+        return colors
 end function
 
 global function LoadImagePalette(sequence image,atom size,atom count)
         return c_func(xLoadImagePalette,{image,size,count})
 end function
 
-global procedure UnloadImageColors(atom colors)
-        c_proc(xUnloadImageColors,{colors})
+global procedure UnloadImageColors(sequence  colors)
+atom ptrforfree=colors[$]
+        c_proc(xUnloadImageColors,{ptrforfree})
 end procedure
 
 global procedure UnloadImagePalette(atom colors)
@@ -4273,7 +4361,7 @@ end procedure
 
 --Model 3D Loading functions
 constant xLoadModel = define_c_func(ray,"+LoadModel",{C_HPTR,C_STRING},Model),
-                                xLoadModelFromMesh = define_c_func(ray,"+LoadModelFromMesh",{Mesh},Model),
+                                xLoadModelFromMesh = define_c_func(ray,"+LoadModelFromMesh",{C_HPTR,Mesh},Model),
                                 xIsModelValid = define_c_func(ray,"+IsModelValid",{Model},C_BOOL),
                                 xUnloadModel = define_c_proc(ray,"+UnloadModel",{Model}),
                                 xGetModelBoundingBox = define_c_func(ray,"+GetModelBoundingBox",{C_HPTR,Model},BoundingBox)
@@ -4291,7 +4379,15 @@ return result
 end function
 
 public function LoadModelFromMesh(sequence mesh)
-        return c_func(xLoadModelFromMesh,{mesh})
+atom pmesh=allocate(size_mesh)
+atom mem=allocate(size_model)
+atom ptr
+sequence result=Tmodel
+        ptr = c_func(xLoadModelFromMesh,{mem,poke_mesh(pmesh,mesh)})
+result=peek_model(ptr)
+free(pmesh)
+free(mem)
+return result
 end function
 
 public function IsModelValid(sequence model)
@@ -4440,52 +4536,88 @@ public function ExportMeshAsCode(sequence mesh,sequence fName)
 end function
 
 --Mesh generation functions
-constant xGenMeshPoly = define_c_func(ray,"+GenMeshPoly",{C_INT,C_FLOAT},Mesh),
-                                xGenMeshPlane = define_c_func(ray,"+GenMeshPlane",{C_FLOAT,C_FLOAT,C_INT,C_INT},Mesh),
-                                xGenMeshCube = define_c_func(ray,"+GenMeshCube",{C_FLOAT,C_FLOAT,C_FLOAT},Mesh),
-                                xGenMeshSphere = define_c_func(ray,"+GenMeshSphere",{C_FLOAT,C_INT,C_INT},Mesh),
-                                xGenMeshHemiSphere = define_c_func(ray,"+GenMeshHemiSphere",{C_FLOAT,C_INT,C_INT},Mesh),
-                                xGenMeshCylinder = define_c_func(ray,"+GenMeshCylinder",{C_FLOAT,C_FLOAT,C_INT},Mesh),
-                                xGenMeshCone = define_c_func(ray,"+GenMeshCone",{C_FLOAT,C_FLOAT,C_INT},Mesh),
-                                xGenMeshTorus = define_c_func(ray,"+GenMeshTorus",{C_FLOAT,C_FLOAT,C_INT,C_INT},Mesh),
-                                xGenMeshKnot = define_c_func(ray,"+GenMeshKnot",{C_FLOAT,C_FLOAT,C_INT,C_INT},Mesh),
-                                xGenMeshHeightmap = define_c_func(ray,"+GenMeshHeightmap",{Image,Vector3},Mesh),
-                                xGenMeshCubicmap = define_c_func(ray,"+GenMeshCubicmap",{Image,Vector3},Mesh)
+constant xGenMeshPoly = define_c_func(ray,"+GenMeshPoly",{C_HPTR,C_INT,C_FLOAT},Mesh),
+                                xGenMeshPlane = define_c_func(ray,"+GenMeshPlane",{C_HPTR,C_FLOAT,C_FLOAT,C_INT,C_INT},Mesh),
+                                xGenMeshCube = define_c_func(ray,"+GenMeshCube",{C_HPTR,C_FLOAT,C_FLOAT,C_FLOAT},Mesh),
+                                xGenMeshSphere = define_c_func(ray,"+GenMeshSphere",{C_HPTR,C_FLOAT,C_INT,C_INT},Mesh),
+                                xGenMeshHemiSphere = define_c_func(ray,"+GenMeshHemiSphere",{C_HPTR,C_FLOAT,C_INT,C_INT},Mesh),
+                                xGenMeshCylinder = define_c_func(ray,"+GenMeshCylinder",{C_HPTR,C_FLOAT,C_FLOAT,C_INT},Mesh),
+                                xGenMeshCone = define_c_func(ray,"+GenMeshCone",{C_HPTR,C_FLOAT,C_FLOAT,C_INT},Mesh),
+                                xGenMeshTorus = define_c_func(ray,"+GenMeshTorus",{C_HPTR,C_FLOAT,C_FLOAT,C_INT,C_INT},Mesh),
+                                xGenMeshKnot = define_c_func(ray,"+GenMeshKnot",{C_HPTR,C_FLOAT,C_FLOAT,C_INT,C_INT},Mesh),
+                                xGenMeshHeightmap = define_c_func(ray,"+GenMeshHeightmap",{C_HPTR,Image,Vector3},Mesh),
+                                xGenMeshCubicmap = define_c_func(ray,"+GenMeshCubicmap",{C_HPTR,Image,Vector3},Mesh)
                                 
 public function GenMeshPoly(atom sides,atom rad)
-        return c_func(xGenMeshPoly,{sides,rad})
+atom mem=allocate(size_mesh)
+atom ptr=c_func(xGenMeshPoly,{mem,sides,rad})
+sequence mesh=peek_mesh(ptr)
+free(mem)
+return mesh
 end function
 
 public function GenMeshPlane(atom width,atom len,atom x,atom z)
-        return c_func(xGenMeshPlane,{width,len,x,z})
+atom mem=allocate(size_mesh)
+atom ptr= c_func(xGenMeshPlane,{mem,width,len,x,z})
+sequence mesh=peek_mesh(ptr)
+free(mem)
+return mesh
 end function
 
 public function GenMeshCube(atom width,atom height,atom len)
-        return c_func(xGenMeshCube,{width,height,len})
+atom mem=allocate(size_mesh)
+atom ptr= c_func(xGenMeshCube,{mem,width,height,len})
+sequence mesh=peek_mesh(ptr)
+free(mem)
+return mesh
 end function
 
 public function GenMeshSphere(atom rad,atom rings,atom slices)
-        return c_func(xGenMeshSphere,{rad,rings,slices})
+atom mem=allocate(size_mesh)
+atom ptr= c_func(xGenMeshSphere,{mem,rad,rings,slices})
+sequence mesh=peek_mesh(ptr)
+free(mem)
+return mesh
 end function
 
 public function GenMeshHemiSphere(atom rad,atom rings,atom slices)
-        return c_func(xGenMeshHemiSphere,{rad,rings,slices})
+atom mem=allocate(size_mesh)
+atom ptr= c_func(xGenMeshHemiSphere,{mem,rad,rings,slices})
+sequence mesh=peek_mesh(ptr)
+free(mem)
+return mesh
 end function
 
 public function GenMeshCylinder(atom rad,atom height,atom slices)
-        return c_func(xGenMeshCylinder,{rad,height,slices})
+atom mem=allocate(size_mesh)
+atom ptr= c_func(xGenMeshCylinder,{mem,rad,height,slices})
+sequence mesh=peek_mesh(ptr)
+free(mem)
+return mesh
 end function
 
 public function GenMeshCone(atom rad,atom height,atom slices)
-        return c_func(xGenMeshCone,{rad,height,slices})
+atom mem=allocate(size_mesh)
+atom ptr= c_func(xGenMeshCone,{mem,rad,height,slices})
+sequence mesh=peek_mesh(ptr)
+free(mem)
+return mesh
 end function
 
 public function GenMeshTorus(atom rad,atom size,atom seg,atom sides)
-        return c_func(xGenMeshTorus,{rad,size,seg,sides})
+atom mem=allocate(size_mesh)
+atom ptr= c_func(xGenMeshTorus,{mem,rad,size,seg,sides})
+sequence mesh=peek_mesh(ptr)
+free(mem)
+return mesh
 end function
 
 public function GenMeshKnot(atom rad,atom size,atom seg,atom sides)
-        return c_func(xGenMeshKnot,{rad,size,seg,sides})
+atom mem=allocate(size_mesh)
+atom ptr= c_func(xGenMeshKnot,{mem,rad,size,seg,sides})
+sequence mesh=peek_mesh(ptr)
+free(mem)
+return mesh
 end function
 
 public function GenMeshHeightmap(sequence heightmap,sequence size)
@@ -4493,7 +4625,16 @@ public function GenMeshHeightmap(sequence heightmap,sequence size)
 end function
 
 public function GenMeshCubicmap(sequence cubicmap,sequence size)
-        return c_func(xGenMeshCubicmap,{cubicmap,size})
+atom pimg=allocate(size_image)
+atom vec=allocate(size_vector3)
+atom mem=allocate(size_mesh)
+atom result
+        result= c_func(xGenMeshCubicmap,{mem,poke_image(pimg,cubicmap),poke_vector3(vec,size)})
+sequence mesh=peek_mesh(result)
+free(pimg)
+free(mem)
+free(vec)
+return mesh
 end function
 
 --Material loading functions
