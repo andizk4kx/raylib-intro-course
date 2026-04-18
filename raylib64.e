@@ -1,14 +1,15 @@
 without warning
--------------------------------------------
--- This wrapper is based on this work:
--------------------------------------------
---https://github.com/gAndy50/EuRayLib5
---Euraylib 
---Written by Andy P. 
---Copyright (c) 2024
---Wrapper of Raylib 5.5 for OpenEuphoria
---OpenEuphoria v. 4.1.0 Beta 2
--------------------------------------------
+/*******************************************************************************************
+ *
+ *   Copyright (c) 2026 Andreas Wagner (andizk4kx)
+ *   Based on EuRayLib5 by gAndy50 and raylib by Ramon Santamaria
+ *
+ *   This software is provided 'as-is', without any express or implied warranty. 
+ *   Distributed under the terms of the zlib license.
+ *   Full license text available in the LICENSE file.
+ *
+ ********************************************************************************************/
+
 --/*
 --include std/ffi.e
 include std/error.e
