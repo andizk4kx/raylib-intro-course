@@ -2,7 +2,8 @@
 
 All lessons and examples in this repository have been ported so they can be used with Phix or Euphoria.
 To run the lessons, you will need either [Euphoria](https://openeuphoria.org/) or [Phix](http://phix.x10.mx/) in their current 64-bit versions: [Euphoria 4.1](https://github.com/OpenEuphoria/euphoria) or [Phix 1.0.6](https://github.com/petelomax/Phix) 
-The required wrapper (binding) is included here along with the lessons. This wrapper supports only Windows 64-bit.you can find the latest wrapper with over 50 examples for Raylib with Phix/Euphoria here:[wrapper](https://github.com/andizk4kx/raylib-playground)
+The required wrapper (binding) is included here along with the lessons. This wrapper supports only Windows 64-bit.
+You can find the latest wrapper with over 50 examples for Raylib with Phix/Euphoria here: [wrapper](https://github.com/andizk4kx/raylib-playground)
 
 # raylib Introduction Course
 
