@@ -2462,6 +2462,14 @@ free(camera)
 return camret
 end function
 
+global function CameraRoll(sequence cam,atom angle)
+atom camera=allocate(size_camera3d)
+sequence camret=Tcamera3D
+camret=peek_camera3d(camera)
+            c_proc(xCameraRoll,{poke_camera3d(camera,cam),angle})   
+free(camera)
+return camret
+end function
 
 --Shape functions
 constant xSetShapesTexture = define_c_proc(ray,"+SetShapesTexture",{Texture2D,Rectangle}),
@@ -2525,14 +2533,17 @@ global procedure DrawPixel(integer x,integer y,sequence color)
 integer col=bytes_to_int(color)
 --/**/#ilASM{ 
 --/**/  [64]
+--/**/
 --/**/      mov rcx,[x]
 --/**/      mov rdx,[y]
 --/**/      mov r8,[col]
 --/**/      sub rsp, 40                 -- Shadow Space (32) + Alignment (8)
 --/**/      mov rax,[DrawPixel_]
 --/**/      call rax
---/**/  --  call "libraylib","DrawPixel"         -- Direkter Sprung
---/**/      add rsp, 40
+--/**/      --call "libraylib","DrawPixel"       -- Direkter Sprung
+--/**/      add rsp,40
+--/**/      [32]
+--/**/      nop 
 --/**/  }
 --/*
     c_proc(xDrawPixel,{x,y,col})
@@ -2560,7 +2571,9 @@ integer col=bytes_to_int(color)
 --/**/  --  mov rax,[DrawPixelV_]
 --/**/      call rax
 --/**/  --  call "libraylib","DrawPixelV"        -- Direkter Sprung
---/**/      add rsp, 40
+--/**/      add rsp,40
+--/**/      [32]
+--/**/      nop
 --/**/  }
 --/*
     c_proc(xDrawPixelV,{reg,col})
@@ -3210,8 +3223,8 @@ return result
 end function
 
 --Image manipulation functions
-constant xImageCopy = define_c_func(ray,"+ImageCopy",{Image},Image),
-                                xImageFromImage = define_c_func(ray,"+ImageFromImage",{Image,Rectangle},Image),
+constant xImageCopy = define_c_func(ray,"+ImageCopy",{C_HPTR,Image},Image),
+                                xImageFromImage = define_c_func(ray,"+ImageFromImage",{C_HPTR,Image,Rectangle},Image),
                                 xImageFromChannel = define_c_func(ray,"+ImageFromChannel",{Image,C_INT},Image),
                                 xImageText = define_c_func(ray,"+ImageText",{C_STRING,C_INT,C_Color},Image),
                                 xImageTextEx = define_c_func(ray,"+ImageTextEx",{Font,C_STRING,C_FLOAT,C_FLOAT,C_Color},Image),
@@ -3248,11 +3261,26 @@ constant xImageCopy = define_c_func(ray,"+ImageCopy",{Image},Image),
                                 xGetImageColor = define_c_func(ray,"+GetImageColor",{Image,C_INT,C_INT},C_Color)
                                 
 global function ImageCopy(sequence image)
-        return c_func(xImageCopy,{image})
+atom mem=allocate(size_image)
+atom img=allocate(size_image)
+atom ptr
+        ptr = c_func(xImageCopy,{mem,poke_image(img,image)})
+sequence result=peek_image(ptr)
+free(mem)
+free(img)
+return result
 end function
 
 global function ImageFromImage(sequence image,sequence rec)
-        return c_func(xImageFromImage,{image,rec})
+atom mem=allocate(size_image)
+atom rect=allocate(size_rectangle)
+atom ptr
+sequence result
+        ptr = c_func(xImageFromImage,{mem,poke_image(mem,image),poke_rectangle(rect,rec)})
+        result=peek_image(ptr)
+free(rect)
+free(mem)
+return (result)
 end function
 
 global function ImageFromChannel(sequence image,atom selectChannel)
@@ -3267,9 +3295,13 @@ global function ImageTextEx(sequence font,sequence text,atom fontSize,atom space
         return c_func(xImageTextEx,{font,text,fontSize,space,tint})
 end function
 
-global procedure ImageFormat(atom image,atom newFormat)
-        c_proc(xImageFormat,{image,newFormat})
-end procedure
+global function ImageFormat(sequence image,atom newFormat)
+atom mem=allocate(size_image)
+        c_proc(xImageFormat,{poke_image(mem,image),newFormat})
+sequence result=peek_image(mem)
+free(mem)
+return result
+end function
 
 global procedure ImageToPOT(atom image,sequence fill)
         c_proc(xImageToPOT,{image,fill})
@@ -3367,29 +3399,39 @@ global procedure ImageColorReplace(atom image,sequence color,sequence replace)
         c_proc(xImageColorReplace,{image,color,replace})
 end procedure
 
-global function LoadImageColors(sequence image)
+global function LoadImageColors(sequence image,integer raw=0)
 atom mem=allocate(size_image)
 integer width=2,height=3
 integer numPixels = image[width] * image[height]
 atom pPixels=c_func(xLoadImageColors,{poke_image(mem,image)})
----- Lies alle Bytes auf einmal 
-sequence rawBytes = peek({pPixels, numPixels * 4})
---  Die Farben als {R,G,B,A} Gruppen:
-sequence colors = {}
-for i=1 to length(rawBytes) by 4 do
-    colors = append(colors, {rawBytes[i], rawBytes[i+1], rawBytes[i+2], rawBytes[i+3]})
-end for
-colors=append(colors,pPixels) -- pointer noch anhaengen zum wieder freigeben
 free(mem)
+if raw then
+        return pPixels
+else
+        ---- Lies alle Bytes auf einmal 
+        sequence rawBytes = peek({pPixels, numPixels * 4})
+        --  Die Farben als {R,G,B,A} Gruppen:
+        sequence colors = {}
+        for i=1 to length(rawBytes) by 4 do
+            colors = append(colors, {rawBytes[i], rawBytes[i+1], rawBytes[i+2], rawBytes[i+3]})
+        end for
+        colors=append(colors,pPixels) -- pointer noch anhaengen zum wieder freigeben
         return colors
+end if
+
 end function
 
 global function LoadImagePalette(sequence image,atom size,atom count)
         return c_func(xLoadImagePalette,{image,size,count})
 end function
 
-global procedure UnloadImageColors(sequence  colors)
-atom ptrforfree=colors[$]
+global procedure UnloadImageColors(object  colors)
+atom ptrforfree
+if sequence(colors) then
+    ptrforfree=colors[$]
+else
+    ptrforfree=colors
+end if
         c_proc(xUnloadImageColors,{ptrforfree})
 end procedure
 
@@ -3429,9 +3471,12 @@ constant xImageClearBackground = define_c_proc(ray,"+ImageClearBackground",{C_PO
                                 xImageDrawText = define_c_proc(ray,"+ImageDrawText",{C_POINTER,C_STRING,C_INT,C_INT,C_INT,C_Color}),
                                 xImageDrawTextEx = define_c_proc(ray,"+ImageDrawTextEx",{C_POINTER,Font,C_STRING,Vector2,C_FLOAT,C_FLOAT,C_Color})
                                 
-global procedure ImageClearBackground(atom dst,sequence color)
-        c_proc(xImageClearBackground,{dst,color})
-end procedure
+global function ImageClearBackground(sequence dst,sequence color)
+atom mem=allocate(size_image)
+        c_proc(xImageClearBackground,{poke_image(mem,dst),bytes_to_int(color)})
+sequence result=peek_image(mem)
+return result
+end function
 
 global procedure ImageDrawPixel(atom dst,atom x,atom y,sequence color)
         c_proc(xImageDrawPixel,{dst,x,y,color})
@@ -4330,6 +4375,7 @@ free(v1)
 free(v2)
 end procedure
 
+--CHECK for 6.1+
 public procedure DrawCapsule(sequence startpos,sequence ep,atom rad,atom slices,atom rings,sequence col)
 atom v1=allocate(size_vector3)
 atom v2=allocate(size_vector3)
@@ -4337,7 +4383,7 @@ atom v2=allocate(size_vector3)
 free(v1)
 free(v2)
 end procedure
-
+--CHECK for 6.1+
 public procedure DrawCapsuleWires(sequence start,sequence ep,atom rad,atom slices,atom rings,sequence col)
 atom v1=allocate(size_vector3)
 atom v2=allocate(size_vector3)
@@ -4434,7 +4480,15 @@ free(vec1)
 end procedure
 
 public procedure DrawModelEx(sequence model,sequence pos,sequence rotAxis,atom rotAng,sequence scale,sequence tint)
-        c_proc(xDrawModelEx,{model,pos,rotAxis,rotAng,scale,tint})
+atom modl=allocate(size_model)
+atom pos1=allocate(size_vector3)
+atom rot=allocate(size_vector3)
+atom sca=allocate(size_vector3)
+        c_proc(xDrawModelEx,{poke_model(modl,model),poke_vector3(pos1,pos),poke_vector3(rot,rotAxis),rotAng,poke_vector3(sca,scale),bytes_to_int(tint)})
+free(modl)
+free(pos1)
+free(rot)
+free(sca)
 end procedure
 
 public procedure DrawModelWires(sequence model,sequence pos,atom scale,sequence tint)
@@ -4622,7 +4676,16 @@ return mesh
 end function
 
 public function GenMeshHeightmap(sequence heightmap,sequence size)
-        return c_func(xGenMeshHeightmap,{heightmap,size})
+atom pimg=allocate(size_image)
+atom vec=allocate(size_vector3)
+atom mem=allocate(size_mesh)
+atom result
+        result = c_func(xGenMeshHeightmap,{mem,poke_image(pimg,heightmap),poke_vector3(vec,size)})
+sequence mesh=peek_mesh(result)
+free(pimg)
+free(mem)
+free(vec)
+return mesh
 end function
 
 public function GenMeshCubicmap(sequence cubicmap,sequence size)

@@ -173,7 +173,7 @@ Second, that image data must be uploaded to VRAM memory (GPU) to be used on scre
 
 Third, when drawing a texture to screen, texture is actually pasted over a quad (two triangles structure) and processed to display on the screen; that processing occurs in a per-fragment basis... think about it like a per pixel or sub-pixel processing, placing every fragment on the final canvas.
 
-raylib provides multiple functions to deal with textures an images, depending on the intended use of the data, user can choose the right one; for example, most of the time, images will be loaded as textures to be displayed on screen but image data can also be used to generate 3d models, like in the case of [heightmaps](https://www.raylib.com/examples/models/loader.html?name=models_heightmap).
+raylib provides multiple functions to deal with textures an images, depending on the intended use of the data, user can choose the right one; for example, most of the time, images will be loaded as textures to be displayed on screen but image data can also be used to generate 3d models, like in the case of [heightmaps](https://github.com/andizk4kx/raylib-playground/blob/main/examples/models/models_heightmap_rendering.ex).
 
 To load and draw textures, raylib provides the following functions:
 ```Euphoria
